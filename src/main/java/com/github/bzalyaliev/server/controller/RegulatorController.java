@@ -2,6 +2,7 @@ package com.github.bzalyaliev.server.controller;
 
 import com.github.bzalyaliev.regulator.Regulator;
 import com.github.bzalyaliev.regulator.RegulatorImpl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,26 +15,35 @@ public class RegulatorController {
 
     private final Regulator regulator = RegulatorImpl.getInstance();
 
+    private HttpHeaders createTestHeader() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("test", "1");
+        return headers;
+    }
+
     @PostMapping("/set")
     public ResponseEntity<String> setTemperature(@RequestBody double temperature) {
+        HttpHeaders headers = createTestHeader();
         regulator.setTemperature(temperature);
-        return ResponseEntity.ok("Temperature set successfully");
+        return ResponseEntity.ok().headers(headers).body("Temperature set successfully");
     }
 
     @GetMapping("/current")
     public ResponseEntity<Double> getLastTemperature() {
+        HttpHeaders headers = createTestHeader();
         List<Double> temperatures = regulator.getTemperatureValues();
         Double currentTemperature;
         if (temperatures.size() > 0) {
             currentTemperature = temperatures.get(temperatures.size() - 1);
-            return ResponseEntity.ok(currentTemperature);
+            return ResponseEntity.ok().headers(headers).body(currentTemperature);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.notFound().headers(headers).build();
     }
 
     @GetMapping("/last")
     public ResponseEntity<Double> getLastTemperatureValues(@RequestParam("offset") int offset,
                                                            @RequestParam("count") int count) {
+        HttpHeaders headers = createTestHeader();
         List<Double> temperatures = regulator.getTemperatureValues();
         int totalTemperatures = temperatures.size();
 
@@ -43,26 +53,27 @@ public class RegulatorController {
 
             if (endIndex >= startIndex) {
                 List<Double> selectedTemperatures = temperatures.subList(startIndex, endIndex);
-                return ResponseEntity.ok(selectedTemperatures.get(selectedTemperatures.size() - 1));
+                return ResponseEntity.ok().headers(headers).body(selectedTemperatures.get(selectedTemperatures.size() - 1));
             }
         }
-
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.notFound().headers(headers).build();
     }
 
     @PostMapping("/clear")
     public ResponseEntity<String> clearTemperatureHistory() {
+        HttpHeaders headers = createTestHeader();
         regulator.clearTemperatureValues();
-        return ResponseEntity.ok("Temperature history cleared");
+        return ResponseEntity.ok().headers(headers).body("Temperature history cleared");
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<Double>> getAllTemperatures() {
+        HttpHeaders headers = createTestHeader();
         List<Double> temperatures = regulator.getTemperatureValues();
         if (temperatures.size() > 0) {
-            return ResponseEntity.ok(temperatures);
+            return ResponseEntity.ok().headers(headers).body(temperatures);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.notFound().headers(headers).build();
     }
 
 }
